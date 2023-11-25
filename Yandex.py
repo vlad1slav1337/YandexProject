@@ -193,11 +193,12 @@ class MyWidget(QMainWindow):
         self.master.keyRelease(event.key(), self.slider.value())
 
     def SoundfondFile(self):
-        self.master.mainInstrument.allNotesOff()
-        fName = QFileDialog.getOpenFileName(self, 'soundfond file', '')[0]
-        self.master.mainInstrument.changeSoundFont(fName)
-        self.box.clear()
-        self.box.addItems(self.master.mainInstrument.getInstrumentList())
+        fName = QFileDialog.getOpenFileName(self, 'Change SoundFont File', '', '*.sf2')
+        if fName[0] == '':
+            return
+        self.master.mainInstrument.changeSoundFont(fName[0])
+        self.presetBox.clear()
+        self.presetBox.addItems(self.master.mainInstrument.getInstrumentList())
         self.changePreset()
 
     def changeBank(self):
