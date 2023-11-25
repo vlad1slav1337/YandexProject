@@ -95,8 +95,8 @@ class Master():
         self.noteStartTime = [0] * 128
         self.share = 0
 
-        self.mainInstrument = SoundFont('Mother 3 NEW.sf2')
-        self.metronome = SoundFont('Mother 3 NEW.sf2')
+        self.mainInstrument = SoundFont('default.sf2')
+        self.metronome = SoundFont('default.sf2')
 
         self.midiFile = MIDIFile(numTracks=1)
 
