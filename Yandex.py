@@ -11,7 +11,6 @@ from midiutil import MIDIFile
 import sqlite3
 
 
-# сделать name по умолчанию
 class SoundFont():
     def __init__(self, file, driver='alsa'):
         soundfont = sf2l.sf2_loader(file)
@@ -98,7 +97,8 @@ class Master():
         self.mainInstrument = SoundFont('default.sf2')
         self.metronome = SoundFont('default.sf2')
 
-        self.midiFile = MIDIFile(numTracks=1)
+        self.midiFile = MIDIFile()
+        self.fname = "default.mid"
 
     def keyPress(self, key, vel):
         if key not in self.notes.keys():
@@ -154,18 +154,14 @@ class MyWidget(QMainWindow):
         self.recordButton.clicked.connect(self.record)
         self.saveButton.clicked.connect(self.save)
         self.playButton.clicked.connect(self.play)
-        self.clearButton.clicked.connect(self.clear)
+        self.tempoButton.clicked.connect(self.changeTempo)
+        self.changeSoundButton.clicked.connect(self.SoundfondFile)
+        self.plusOctaveButton.clicked.connect(self.plusOctave)
+        self.minusOctaveButton.clicked.connect(self.minusOctave)
 
         self.slider.setValue(100)
         self.slider.setMinimum(0)
         self.slider.setMaximum(127)
-
-        self.changeSoundButton.clicked.connect(self.SoundfondFile)
-
-        self.plusOctaveButton.clicked.connect(self.plusOctave)
-        self.minusOctaveButton.clicked.connect(self.minusOctave)
-
-        self.tempoButton.clicked.connect(self.changeTempo)
 
         self.bankBox.addItems([str(i) for i in self.master.mainInstrument.instruments.keys()])
         self.bankBox.activated.connect(self.changeBank)
@@ -174,9 +170,6 @@ class MyWidget(QMainWindow):
         self.box.addItems(self.master.mainInstrument.getInstrumentList())
         self.box.activated.connect(self.changePreset)
         self.box.setEditable(False)
-
-        # self.presetBox.addItems([f'{i} {self.master.mainInstrument.instruments[self.master.mainInstrument.bank][i]}' for i in self.master.mainInstrument.instruments[self.master.mainInstrument.bank]])
-        # self.presetBox.activated.connect(self.changePreset)
 
         self.clickTimer = QTimer()
         self.clickTimer.setInterval(int(self.master.tact * 1000 / self.master.beats))
@@ -239,32 +232,14 @@ class MyWidget(QMainWindow):
         self.master.playMode = not self.master.playMode
         if self.master.playMode:
             self.playButton.setText('stop')
-            # self.master.mainInstrument.fs.player_set_tempo(1, self.master.tempo)
-            self.master.mainInstrument.fs.play_midi_file('test.mid')
+            self.master.mainInstrument.fs.play_midi_file(self.master.fname, self.master.tempo)
         else:
             self.playButton.setText('play')
+            self.master.mainInstrument.allNotesOff()
             self.master.mainInstrument.fs.play_midi_stop()
 
     def save(self):
-        with open('test.mid', 'wb') as outputFile:
-            self.master.midiFile.writeFile(outputFile)
-        # names, ok_pressed = QInputDialog.getText(self, "Enter a name",
-        #                                         "name of the melody")
-        # if not ok_pressed:
-        #     return
-        # n = names + '.mid'
-        # con = sqlite3.connect('melodies.db')
-        # cur = con.cursor()
-        # cur.execute("""INSERT INTO melody(name) VALUES(names)""")
-        # con.commit()
-        # nam = cur.execute("""SELECT * FROM melody""").fetchall()
-        # print(nam)
-        # con.close()
-
-    def clear(self):
-        self.master.midiFile = MIDIFile(numTracks=1)
-        with open('test.mid', 'wb') as outputFile:
-            self.master.midiFile.writeFile(outputFile)
+        ...
 
     def record(self):
         self.master.recordMode = not self.master.recordMode
@@ -273,10 +248,13 @@ class MyWidget(QMainWindow):
             self.master.recordsStart = time.time()
             self.master.click()
             self.clickTimer.start()
+            self.master.midiFile = MIDIFile()
         else:
             self.recordButton.setText('record')
             self.clickTimer.stop()
             self.master.share = 0
+            with open(self.master.fname, 'wb') as outputFile:
+                self.master.midiFile.writeFile(outputFile)
 
 
 if __name__ == '__main__':
